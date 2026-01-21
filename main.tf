@@ -48,17 +48,25 @@ resource "proxmox_vm_qemu" "kubernetes_node" {
   cores   = 2
   sockets = 1
 }
+# Define the scci controller
+
 scsihw = "virtio-scsi-pci"
+
+# Explicitly set scsi0 as the boot disk 
+
 boot = "order=scsi0"
 
   # Disk configuration
   # Using the storage and disk size from your previous configuration.
+  
   disk {
     slot = "scsi0"
     type    = "disk"
     storage = "datastoreHDD1"
     size    = "20G"
   }
+
+  # Define a disk for cloudinit
   disk {
     slot    = "ide2"
     type    = "cloudinit"
