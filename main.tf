@@ -6,7 +6,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "telmate/proxmox"
-      version = "3.0.2-rc03" # Use a specific version for consistency, or a range.
+      version = "3.0.2-rc07" # Use a specific version for consistency, or a range.
     }
   }
 }
@@ -16,8 +16,8 @@ terraform {
 # They are correct for the 'telmate/proxmox' provider.
 provider "proxmox" {
   pm_api_url          = "https://192.168.1.100:8006/api2/json"
-  pm_api_token_id     = "ansible@pam!ansible-token"
-  pm_api_token_secret = "1cc73f5a-64e6-42f6-b3e7-0b5199192c1b"
+  pm_api_token_id     = "terraform@pve!terraform-token"
+  pm_api_token_secret = "25bd465a-43ed-4a08-92d9-72e414f91d31"
   pm_tls_insecure     = true # Warning: Use with caution in production.
 }
 
@@ -39,23 +39,33 @@ resource "proxmox_vm_qemu" "kubernetes_node" {
 
   # Clone from an existing template.
   # Using the template name from your previous configuration.
-  #template_vm_id = 701
+  #template_vm_id = 9001
   clone = "ubuntu-cloud-template"
-  
-memory = 2048
-cpu{
+
+  memory = 2048
+  cpu {
   # Hardware configuration
   cores   = 2
   sockets = 1
 }
+scsihw = "virtio-scsi-pci"
+boot = "order=scsi0"
+
   # Disk configuration
   # Using the storage and disk size from your previous configuration.
   disk {
-    slot = "virtio0"
+    slot = "scsi0"
     type    = "disk"
-    storage = "VGLOCAL3"
+    storage = "datastoreHDD1"
     size    = "20G"
   }
+  disk {
+    slot    = "ide2"
+    type    = "cloudinit"
+    storage = "datastoreHDD1"
+  }
+
+  ipconfig0 = "ip=dhcp"
 
   # Cloud-init configuration
   os_type = "cloud-init"
